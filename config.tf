@@ -20,8 +20,8 @@ locals {
   project_number         = var.project_nmr
   project_default_region = var.project_default_region
   service_ids = [
-    "run-service1",
-    "run-service2"
+    "runservice1",
+    "runservice2"
   ]
 
   gcp_service_list = [
