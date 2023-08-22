@@ -6,7 +6,7 @@ app = Flask(__name__)
 @app.route("/runservice1",methods=['GET','POST'])
 def runservice1():
     if request.method=='GET':
-        return jsonify({"message": "success runservice1"})
+        return jsonify({"message": "App1 served from a Flask app"})
     else:
         return jsonify({'Error':"This is a GET API method"})
 
