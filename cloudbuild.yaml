@@ -1,31 +1,31 @@
 steps:
   # Build and tag using commit sha
-  #- name: 'gcr.io/cloud-builders/docker'
-  #  args: ['build', '.', '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/run-image/custom-nginx1:latest', '-f', 'Dockerfile']
-  #  dir: 'app1'
+#  - name: 'gcr.io/cloud-builders/docker'
+#    args: ['build', '.', '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/run-image/custom-flask:latest', '-f', 'Dockerfile']
+#    dir: 'app1'
   # Push the container image to Artifact Registry
-  #- name: 'gcr.io/cloud-builders/docker'
-  #  args: ['push', '${_REGION}-docker.pkg.dev/$PROJECT_ID/run-image/custom-nginx1:latest']
+#  - name: 'gcr.io/cloud-builders/docker'
+#    args: ['push', '${_REGION}-docker.pkg.dev/$PROJECT_ID/run-image/custom-flask:latest']  
+  # Build and tag using commit sha
+#  - name: 'gcr.io/cloud-builders/docker'
+#    args: ['build', '.', '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/run-image/custom-nginx2:latest', '-f', 'Dockerfile']
+#    dir: 'app2'
+  # Push the container image to Artifact Registry
+#  - name: 'gcr.io/cloud-builders/docker'
+#    args: ['push', '${_REGION}-docker.pkg.dev/$PROJECT_ID/run-image/custom-nginx2:latest']
+  # Build and tag using commit sha
+#  - name: 'gcr.io/cloud-builders/docker'
+#    args: ['build', '.', '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/run-image/custom-nodejs:latest', '-f', 'Dockerfile']
+#    dir: 'app3'
+  # Push the container image to Artifact Registry
+# - name: 'gcr.io/cloud-builders/docker'
+#    args: ['push', '${_REGION}-docker.pkg.dev/$PROJECT_ID/run-image/custom-nodejs:latest']
   # Build and tag using commit sha
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '.', '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/run-image/custom-flask:latest', '-f', 'Dockerfile']
-    dir: 'app1'
+    args: ['build', '.', '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/run-image/flask-frontend:latest', '-f', 'Dockerfile']
+    dir: 'frontend'
   # Push the container image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', '${_REGION}-docker.pkg.dev/$PROJECT_ID/run-image/custom-flask:latest']  
-  # Build and tag using commit sha
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '.', '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/run-image/custom-nginx2:latest', '-f', 'Dockerfile']
-    dir: 'app2'
-  # Push the container image to Artifact Registry
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', '${_REGION}-docker.pkg.dev/$PROJECT_ID/run-image/custom-nginx2:latest']
-  # Build and tag using commit sha
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '.', '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/run-image/custom-nodejs:latest', '-f', 'Dockerfile']
-    dir: 'app3'
-  # Push the container image to Artifact Registry
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', '${_REGION}-docker.pkg.dev/$PROJECT_ID/run-image/custom-nodejs:latest']
+    args: ['push', '${_REGION}-docker.pkg.dev/$PROJECT_ID/run-image/flask-frontend:latest']
 options:
   logging: CLOUD_LOGGING_ONLY

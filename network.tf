@@ -43,6 +43,24 @@ resource "google_compute_subnetwork" "custom-subnet" {
   }
 }
 
+resource "google_compute_subnetwork" "ilb-subnet" {
+  depends_on = [
+    google_project_service.gcp_services
+  ]
+
+  name          = "ilb-subnet"
+  project       = var.project_id
+  ip_cidr_range = "10.1.2.0/24"
+  region        = var.project_default_region
+  network       = google_compute_network.custom-vpc.id
+
+  log_config {
+    aggregation_interval = "INTERVAL_10_MIN"
+    flow_sampling        = 0.5
+    metadata             = "INCLUDE_ALL_METADATA"
+  }
+}
+
 
 # LB with https (http redirect to https)
 resource "google_compute_target_http_proxy" "default" {

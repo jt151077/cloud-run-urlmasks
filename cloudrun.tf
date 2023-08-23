@@ -82,6 +82,18 @@ resource "google_cloud_run_service" "run" {
   }
 }
 
+resource "google_cloud_run_service_iam_binding" "default" {
+  count = length(local.service_ids)
+
+  project  = var.project_id
+  location = var.project_default_region
+  service  = google_cloud_run_service.run[count.index].name
+  role     = "roles/run.invoker"
+  members = [
+    "allUsers"
+  ]
+}
+
 resource "google_compute_region_network_endpoint_group" "serverless_neg" {
   depends_on = [
     google_project_service.gcp_services
@@ -94,7 +106,7 @@ resource "google_compute_region_network_endpoint_group" "serverless_neg" {
   region                = var.project_default_region
 
   cloud_run {
-    url_mask = "/<service>"
+    service = google_cloud_run_service.frontend.name
   }
 }
 
@@ -114,3 +126,93 @@ resource "google_compute_backend_service" "run-backend-srv" {
     group = google_compute_region_network_endpoint_group.serverless_neg.id
   }
 }
+
+
+resource "google_cloud_run_service" "frontend" {
+  depends_on = [
+    google_project_service.gcp_services
+  ]
+
+  name = "frontend"
+
+  project  = var.project_id
+  location = var.project_default_region
+
+  metadata {
+    annotations = {
+      "run.googleapis.com/ingress" : "internal-and-cloud-load-balancing"
+    }
+  }
+
+  template {
+    spec {
+      service_account_name = google_service_account.cloudrun_service_account.email
+      containers {
+        image = var.default_run_image
+
+        ports {
+          container_port = 80
+        }
+      }
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      template[0].spec[0].containers[0].image,
+      template[0].spec[0].service_account_name,
+      metadata[0].annotations["run.googleapis.com/operation-id"],
+      metadata[0].annotations["client.knative.dev/user-image"],
+      metadata[0].annotations["run.googleapis.com/client-name"],
+      metadata[0].annotations["run.googleapis.com/client-version"]
+    ]
+  }
+
+  traffic {
+    percent         = 100
+    latest_revision = true
+  }
+}
+
+
+resource "google_cloud_run_service_iam_binding" "frontend" {
+  location = var.project_default_region
+  project  = var.project_id
+  service  = google_cloud_run_service.frontend.name
+  role     = "roles/run.invoker"
+  members = [
+    "allUsers"
+  ]
+}
+
+
+resource "google_compute_region_network_endpoint_group" "internal_servless_neg" {
+  depends_on = [
+    google_project_service.gcp_services
+  ]
+
+  name                  = "internal-servless-neg"
+  network_endpoint_type = "SERVERLESS"
+  project               = var.project_id
+  region                = var.project_default_region
+
+  cloud_run {
+    url_mask = "/<service>"
+  }
+}
+
+
+resource "google_compute_region_backend_service" "internal-backend-srv" {
+  name        = "internal-backend-srv"
+  project     = var.project_id
+  region      = var.project_default_region
+  protocol              = "HTTPS"
+  load_balancing_scheme = "INTERNAL_MANAGED"
+
+  backend {
+    balancing_mode  = "UTILIZATION"
+    group = google_compute_region_network_endpoint_group.internal_servless_neg.id
+  }
+}
+
+
