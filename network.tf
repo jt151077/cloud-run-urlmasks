@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-
+# VPC, subnets and DNS
 resource "google_compute_network" "custom-vpc" {
   depends_on = [
     google_project_service.gcp_services
@@ -43,26 +43,57 @@ resource "google_compute_subnetwork" "custom-subnet" {
   }
 }
 
-resource "google_compute_subnetwork" "ilb-subnet" {
+
+resource "google_compute_subnetwork" "proxy_subnet" {
   depends_on = [
     google_project_service.gcp_services
   ]
 
-  name          = "ilb-subnet"
+  name          = "proxy-only-subnet"
+  ip_cidr_range = "10.129.0.0/23"
   project       = var.project_id
-  ip_cidr_range = "10.1.2.0/24"
   region        = var.project_default_region
+  purpose       = "REGIONAL_MANAGED_PROXY"
+  role          = "ACTIVE"
   network       = google_compute_network.custom-vpc.id
+}
 
-  log_config {
-    aggregation_interval = "INTERVAL_10_MIN"
-    flow_sampling        = 0.5
-    metadata             = "INCLUDE_ALL_METADATA"
+resource "google_dns_managed_zone" "private_zone" {
+  depends_on = [
+    google_project_service.gcp_services
+  ]
+
+  name     = "private"
+  dns_name = "${var.private_domain}."
+  project  = var.project_id
+
+  visibility = "private"
+
+  private_visibility_config {
+    networks {
+      network_url = google_compute_network.custom-vpc.id
+    }
   }
 }
 
+resource "google_dns_record_set" "a" {
+  depends_on = [
+    google_project_service.gcp_services,
+    google_compute_address.private-address,
+    google_dns_managed_zone.private_zone
+  ]
 
-# LB with https (http redirect to https)
+  project      = var.project_id
+  name         = google_dns_managed_zone.private_zone.dns_name
+  managed_zone = google_dns_managed_zone.private_zone.name
+  type         = "A"
+  ttl          = 300
+
+  rrdatas = [google_compute_address.private-address.address]
+}
+
+
+# Global LB with https (http redirect to https), including Google managed certificate
 resource "google_compute_target_http_proxy" "default" {
   depends_on = [
     google_project_service.gcp_services
@@ -224,6 +255,90 @@ resource "google_compute_firewall" "default" {
   }
 }
 
-output "lb_external_ip" {
-  value = google_compute_global_address.default.address
+
+
+
+# Internal LB with http url map
+resource "google_compute_address" "private-address" {
+  depends_on = [
+    google_project_service.gcp_services
+  ]
+
+  name         = "${var.project_id}-private-address"
+  subnetwork   = google_compute_subnetwork.custom-subnet.id
+  address_type = "INTERNAL"
+  address      = "10.240.0.40"
+  project      = var.project_id
+  region       = var.project_default_region
+  purpose      = "SHARED_LOADBALANCER_VIP"
 }
+
+resource "google_compute_forwarding_rule" "lb-frontend-cfg-nossl" {
+  depends_on = [
+    google_project_service.gcp_services,
+    google_compute_subnetwork.proxy_subnet
+  ]
+
+  name                  = "lb-frontend-cfg-nossl"
+  project               = var.project_id
+  region                = var.project_default_region
+  ip_protocol           = "TCP"
+  ip_address            = google_compute_address.private-address.id
+  load_balancing_scheme = "INTERNAL_MANAGED"
+  port_range            = "80"
+  target                = google_compute_region_target_http_proxy.lb-frontend-nossl.id
+  network               = google_compute_network.custom-vpc.id
+  subnetwork            = google_compute_subnetwork.custom-subnet.id
+  network_tier          = "PREMIUM"
+}
+
+resource "google_compute_region_target_http_proxy" "lb-frontend-nossl" {
+  depends_on = [
+    google_project_service.gcp_services
+  ]
+
+  name    = "internal-lb-target-proxy"
+  project = var.project_id
+  region  = var.project_default_region
+  url_map = google_compute_region_url_map.lb-frontend.id
+}
+
+# Regional URL map
+resource "google_compute_region_url_map" "lb-frontend" {
+  depends_on = [
+    google_project_service.gcp_services
+  ]
+
+  name            = "internal-lb"
+  project         = var.project_id
+  region          = var.project_default_region
+  default_service = google_compute_region_backend_service.internal-backend-srv.id
+
+  host_rule {
+    hosts        = [var.private_domain]
+    path_matcher = "allpaths"
+  }
+
+  path_matcher {
+    name            = "allpaths"
+    default_service = google_compute_region_backend_service.internal-backend-srv.id
+
+    path_rule {
+      paths   = ["/pri/*"]
+      service = google_compute_region_backend_service.internal-backend-srv.id
+    }
+  }
+}
+
+resource "google_vpc_access_connector" "frontend_to_internal" {
+  name           = "frontend-to-internal"
+  project        = var.project_id
+  region         = var.project_default_region
+  ip_cidr_range  = "10.8.0.0/28"
+  machine_type   = "e2-micro"
+  min_instances  = 2
+  max_instances  = 10
+  network        = google_compute_network.custom-vpc.id
+  max_throughput = 1000
+}
+

@@ -1,6 +1,9 @@
 import os
 from flask import Flask, jsonify, request, render_template
-import urllib.request, json
+import urllib, json, requests
+import subprocess
+
+
 app = Flask(__name__)
 
 
@@ -18,16 +21,13 @@ def index():
 def service(servicenumber):
     if request.method=='GET':
 
-        url = "https://run.jeremyto.demo.altostrat.com/runservice{}".format(servicenumber)
-
-        response = urllib.request.urlopen(url)
-        data = response.read()
+        resp = requests.get("http://private.jeremyto.demo.altostrat.com/pri/runservice{}".format(servicenumber))
         d = ""
 
         try:
-            d = json.loads(data)
+            d = resp.json()
         except:
-            d = data
+            d = resp
 
         return render_template ("index.html", codes=d)    
 
