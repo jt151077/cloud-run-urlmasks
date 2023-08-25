@@ -34,14 +34,15 @@ Source for enabling IAP with Cloud Run: [https://cloud.google.com/iap/docs/enabl
 
 ## Setup
 
-1. Find out your GCP project's id and number from the dashboard in the cloud console, and update the following variables in the `terraform.tfvars.json` file. Replace `YOUR_PROJECT_NMR`, `YOUR_PROJECT_ID` and `your_project_region` with the correct values. `YOUR_IAP_SUPPORT_EMAIL` needs be part of your organisation, and in this example is both the support email for the IAP brand and the user allowed to access the Cloud Run prod service. Create an A record under your Cloud DNS and use this as `YOUR_DOMAIN`, and have it point to the Load Balancer static IP when it is created. Finally specify `YOUR_RUN_SERVICE_ID`, which will be the ID of your CloudRun service in which you can deploy docker containers present in the project's Artifact Registry.
+1. Find out your GCP project's id and number from the dashboard in the cloud console, and update the following variables in the `terraform.tfvars.json` file. Replace `YOUR_PROJECT_NMR`, `YOUR_PROJECT_ID` and `your_project_region` with the correct values. Create an A record under your Cloud DNS and use this as `YOUR_DOMAIN`, and choose a private domain as a subset of your main domain as `YOUR_PRIVATE_DOMAIN`.
 
 ```shell
 {
     "project_id": "YOUR_PROJECT_ID",
     "project_nmr": YOUR_PROJECT_NMR,
     "project_default_region": "YOUR_PROJECT_REGION",
-    "domain": "YOUR_DOMAIN"
+    "domain": "YOUR_DOMAIN",
+    "private_domain": "YOUR_PRIVATE_DOMAIN"
 }
 ```
 
