@@ -1,4 +1,4 @@
-# Cloud Run with IAP
+# Cloud Run with URLmasks
 Simple Cloud Run deployment using Terraform, CloudBuild, Artifact Registry and protected with IAP
 
 Source for enabling IAP with Cloud Run: [https://cloud.google.com/iap/docs/enabling-cloud-run](https://cloud.google.com/iap/docs/enabling-cloud-run)
