@@ -14,6 +14,10 @@ variable "domain" {
   type = string
 }
 
+variable "private_domain" {
+  type = string
+}
+
 
 variable "default_run_image" {
   type    = string

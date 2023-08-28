@@ -1,3 +1,6 @@
-FROM nginx:latest
-WORKDIR /usr/share/nginx/html/runservice2
-COPY index.html index.html
+FROM node:20-slim
+
+WORKDIR /usr/src/app
+COPY . ./
+
+ENTRYPOINT [ "node", "index.js" ]

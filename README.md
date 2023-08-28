@@ -45,7 +45,8 @@ Source for enabling IAP with Cloud Run: [https://cloud.google.com/iap/docs/enabl
     "project_id": "YOUR_PROJECT_ID",
     "project_nmr": YOUR_PROJECT_NMR,
     "project_default_region": "YOUR_PROJECT_REGION",
-    "domain": "YOUR_DOMAIN"
+    "domain": "YOUR_DOMAIN",
+    "private_domain": "YOUR_PRIVATE_DOMAIN"
 }
 ```
 

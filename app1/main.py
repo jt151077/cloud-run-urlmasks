@@ -3,7 +3,7 @@ from flask import Flask, jsonify, request
 app = Flask(__name__)
 
 
-@app.route("/runservice1",methods=['GET','POST'])
+@app.route("/pri/runservice1",methods=['GET','POST'])
 def runservice1():
     if request.method=='GET':
         return jsonify({"message": "App1 served from a Flask app"})
