@@ -6,7 +6,7 @@ Source for enabling IAP with Cloud Run: [https://cloud.google.com/iap/docs/enabl
 
 ## Overall architecture
 
-![](imgs/0.png)
+![](imgs/1.png)
 
 
 ## Project structure
@@ -68,4 +68,4 @@ $ terraform apply
 $ ./deploy.sh
 ```
 
-3. Point your browser to your domain URL `https://YOUR_DOMAIN` and append the service name such as `https://YOUR_DOMAIN/[runservice1, runservice2 or runservice3]` to access the 3 different web applications.
+3. Point your browser to your domain URL `https://YOUR_DOMAIN` and within the application, choose the hyperlinks for app1 or app2 to see the result payload of the API call to the internal services.
