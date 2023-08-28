@@ -38,7 +38,7 @@ Source for enabling IAP with Cloud Run: [https://cloud.google.com/iap/docs/enabl
 
 ## Setup
 
-1. Find out your GCP project's id and number from the dashboard in the cloud console, and update the following variables in the `terraform.tfvars.json` file. Replace `YOUR_PROJECT_NMR`, `YOUR_PROJECT_ID` and `your_project_region` with the correct values. Create an A record under your Cloud DNS and use this as `YOUR_DOMAIN`, and have it point to the Load Balancer static IP when it is created. 
+1. Find out your GCP project's id and number from the dashboard in the cloud console, and update the following variables in the `terraform.tfvars.json` file. Replace `YOUR_PROJECT_NMR`, `YOUR_PROJECT_ID` and `your_project_region` with the correct values. Create an A record under your Cloud DNS and use this as `YOUR_DOMAIN`, and choose a private domain as a subset of your main domain as `YOUR_PRIVATE_DOMAIN`.
 
 ```shell
 {
