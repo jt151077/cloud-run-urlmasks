@@ -6,27 +6,31 @@ Source for enabling IAP with Cloud Run: [https://cloud.google.com/iap/docs/enabl
 
 ## Overall architecture
 
-![](imgs/2.png)
+![](imgs/0.png)
 
 
 ## Project structure
 ```
-.
-|-- app (web application based on nginx)
+. 
+|-- app1 (web application based on Flask)
+|   |-- Dockerfile
+|   |-- main.py
+|   `-- requirements.txt
+|-- app2 (web application based on nginx)
 |   |-- Dockerfile
 |   `-- index.html
-|-- run-iap (terraform module for LB + IAP + CloudRun)
-|   |-- cloudrun.tf
-|   |-- iam.tf
-|   |-- network.tf
-|   `-- vars.tf
+|-- app3 (web application based on NodeJS)
+|   |-- Dockerfile
+|   |-- index.js
+|   `-- package.json
 |-- README.md
 |-- cloudbuild.yaml (build sequence for Cloud Build)
-|-- cloudrun.tf (custom module import and definition)
+|-- cloudrun.tf (NEG and Cloud Run)
 |-- config.tf (services and provider configuration)
 |-- deploy.sh (deploy script using gcloud command for docker image "app")
 |-- gcr.tf (managed artifact repository)
 |-- install.sh (install script for gcp api using gcloud command)
+|-- network.tf (VPC network definition, LB and IP)
 |-- terraform.tfvars.json  (local env variables for terraform)
 `-- vars.tf (variables configuration)
 
@@ -34,7 +38,7 @@ Source for enabling IAP with Cloud Run: [https://cloud.google.com/iap/docs/enabl
 
 ## Setup
 
-1. Find out your GCP project's id and number from the dashboard in the cloud console, and update the following variables in the `terraform.tfvars.json` file. Replace `YOUR_PROJECT_NMR`, `YOUR_PROJECT_ID` and `your_project_region` with the correct values. `YOUR_IAP_SUPPORT_EMAIL` needs be part of your organisation, and in this example is both the support email for the IAP brand and the user allowed to access the Cloud Run prod service. Create an A record under your Cloud DNS and use this as `YOUR_DOMAIN`, and have it point to the Load Balancer static IP when it is created. Finally specify `YOUR_RUN_SERVICE_ID`, which will be the ID of your CloudRun service in which you can deploy docker containers present in the project's Artifact Registry.
+1. Find out your GCP project's id and number from the dashboard in the cloud console, and update the following variables in the `terraform.tfvars.json` file. Replace `YOUR_PROJECT_NMR`, `YOUR_PROJECT_ID` and `your_project_region` with the correct values. Create an A record under your Cloud DNS and use this as `YOUR_DOMAIN`, and have it point to the Load Balancer static IP when it is created. 
 
 ```shell
 {
@@ -62,3 +66,5 @@ $ terraform apply
 ```shell
 $ ./deploy.sh
 ```
+
+3. Point your browser to your domain URL `https://YOUR_DOMAIN` and append the service name such as `https://YOUR_DOMAIN/[runservice1, runservice2 or runservice3]` to access the 3 different web applications.
