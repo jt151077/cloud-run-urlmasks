@@ -184,6 +184,11 @@ resource "google_compute_backend_service" "run-backend-srv" {
   backend {
     group = google_compute_region_network_endpoint_group.serverless_neg.id
   }
+
+  iap {
+    oauth2_client_id     = google_iap_client.project_client.client_id
+    oauth2_client_secret = google_iap_client.project_client.secret
+  }
 }
 
 

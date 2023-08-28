@@ -58,3 +58,16 @@ resource "google_cloud_run_service_iam_binding" "default" {
     "allUsers"
   ]
 }
+
+
+resource "google_iap_web_backend_service_iam_binding" "run-binding" {
+  depends_on = [
+    google_compute_backend_service.run-backend-srv
+  ]
+  project             = var.project_id
+  web_backend_service = google_compute_backend_service.run-backend-srv.name
+  role                = "roles/iap.httpsResourceAccessor"
+  members = [
+    "user:${local.iap_brand_support_email}",
+  ]
+}

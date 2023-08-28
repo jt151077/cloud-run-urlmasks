@@ -342,3 +342,16 @@ resource "google_vpc_access_connector" "frontend_to_internal" {
   max_throughput = 1000
 }
 
+resource "google_iap_brand" "project_brand" {
+  support_email     = var.iap_brand_support_email
+  application_title = "Cloud IAP protected Application"
+  project           = var.project_nmr
+}
+
+resource "google_iap_client" "project_client" {
+  depends_on = [
+    google_iap_brand.project_brand
+  ]
+  display_name = "LB Client"
+  brand        = google_iap_brand.project_brand.name
+}

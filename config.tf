@@ -16,9 +16,10 @@
 
 
 locals {
-  project_id             = var.project_id
-  project_number         = var.project_nmr
-  project_default_region = var.project_default_region
+  project_id              = var.project_id
+  project_number          = var.project_nmr
+  project_default_region  = var.project_default_region
+  iap_brand_support_email = var.iap_brand_support_email
   service_ids = [
     "runservice1",
     "runservice2"
@@ -29,6 +30,7 @@ locals {
     "cloudbuild.googleapis.com",
     "iam.googleapis.com",
     "iamcredentials.googleapis.com",
+    "iap.googleapis.com",
     "run.googleapis.com",
     "storage.googleapis.com",
     "vpcaccess.googleapis.com"

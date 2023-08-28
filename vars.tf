@@ -28,3 +28,7 @@ variable "path_matcher" {
   type    = string
   default = "run"
 }
+
+variable "iap_brand_support_email" {
+  type = string
+}
