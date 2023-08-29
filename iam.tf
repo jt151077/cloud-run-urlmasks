@@ -15,44 +15,99 @@
  */
 
 
-resource "google_service_account" "cloudrun_service_account" {
+
+############################################################
+############# public apps ##################################
+############################################################
+
+#
+### Service account for the frontend Cloud Run service
+#
+resource "google_service_account" "frontend_cloudrun_sa" {
   depends_on = [
     google_project_service.gcp_services
   ]
 
   project    = var.project_id
-  account_id = "cloudrun-sa"
+  account_id = "frontend-cloudrun-sa"
 }
 
-resource "google_project_iam_member" "run_artifactregistry_reader" {
+#
+### Frontend service account access to artifact registry to deploy the container
+#
+resource "google_project_iam_member" "fe_run_artifactregistry_reader" {
   project = var.project_id
   role    = "roles/artifactregistry.reader"
-  member  = "serviceAccount:${google_service_account.cloudrun_service_account.email}"
+  member  = "serviceAccount:${google_service_account.frontend_cloudrun_sa.email}"
 }
 
-resource "google_project_iam_member" "run_logs_writer" {
+#
+### Frontend service account access to write logs
+#
+resource "google_project_iam_member" "fe_run_logs_writer" {
   project = var.project_id
   role    = "roles/logging.logWriter"
-  member  = "serviceAccount:${google_service_account.cloudrun_service_account.email}"
+  member  = "serviceAccount:${google_service_account.frontend_cloudrun_sa.email}"
 }
 
-
-resource "google_cloud_run_service_iam_binding" "frontend" {
+#
+### Allow unauthorised access to frontend cloud run service (still must be accessed internal or via the Global Load Balancer)
+#
+resource "google_cloud_run_service_iam_binding" "fe_unauthorised_access" {
   location = var.project_default_region
   project  = var.project_id
-  service  = google_cloud_run_service.frontend.name
+  service  = google_cloud_run_service.frontend_run.name
   role     = "roles/run.invoker"
   members = [
     "allUsers"
   ]
 }
 
-resource "google_cloud_run_service_iam_binding" "default" {
+
+
+############################################################
+############# private apps #################################
+############################################################
+
+#
+### Service account for the backend Cloud Run service
+#
+resource "google_service_account" "backend_cloudrun_sa" {
+  depends_on = [
+    google_project_service.gcp_services
+  ]
+
+  project    = var.project_id
+  account_id = "backend-cloudrun-sa"
+}
+
+#
+### Frontend service account access to artifact registry to deploy the container
+#
+resource "google_project_iam_member" "be_run_artifactregistry_reader" {
+  project = var.project_id
+  role    = "roles/artifactregistry.reader"
+  member  = "serviceAccount:${google_service_account.backend_cloudrun_sa.email}"
+}
+
+#
+### Frontend service account access to write logs
+#
+resource "google_project_iam_member" "be_run_logs_writer" {
+  project = var.project_id
+  role    = "roles/logging.logWriter"
+  member  = "serviceAccount:${google_service_account.backend_cloudrun_sa.email}"
+}
+
+#
+### Allow unauthorised access to frontend cloud run service (still must be accessed internal or via the Global Load Balancer)
+#
+resource "google_cloud_run_service_iam_binding" "be_unauthorised_access" {
   count = length(local.service_ids)
 
   project  = var.project_id
   location = var.project_default_region
-  service  = google_cloud_run_service.backend_runs[count.index].name
+  service  = google_cloud_run_service.backend_run[count.index].name
   role     = "roles/run.invoker"
   members = [
     "allUsers"
@@ -60,12 +115,37 @@ resource "google_cloud_run_service_iam_binding" "default" {
 }
 
 
-resource "google_iap_web_backend_service_iam_binding" "run-binding" {
+############################################################
+############# dev VM #######################################
+############################################################
+
+#
+### Service account for the dev VM instance
+#
+resource "google_service_account" "dev_vm_sa" {
   depends_on = [
-    google_compute_backend_service.run-backend-srv
+    google_project_service.gcp_services
+  ]
+
+  project    = var.project_id
+  account_id = "dev-vm-sa"
+}
+
+
+
+############################################################
+############# IAP IAM #######################################
+############################################################
+
+#
+# Allow IAP users only access to the IAP protected application
+#
+resource "google_iap_web_backend_service_iam_binding" "frontend_app_iap_binding" {
+  depends_on = [
+    google_compute_backend_service.frontend_global_backend_srv
   ]
   project             = var.project_id
-  web_backend_service = google_compute_backend_service.run-backend-srv.name
+  web_backend_service = google_compute_backend_service.frontend_global_backend_srv.name
   role                = "roles/iap.httpsResourceAccessor"
   members = [
     "user:${local.iap_brand_support_email}",
