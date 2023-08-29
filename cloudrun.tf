@@ -15,87 +15,32 @@
  */
 
 
-# internal applications on Cloud Run
-resource "google_cloud_run_service" "backend_runs" {
+############################################################
+############# public app ###################################
+############################################################
+
+#
+### Regional network endpoint group
+#
+resource "google_compute_region_network_endpoint_group" "frontend_serverless_neg" {
   depends_on = [
     google_project_service.gcp_services
   ]
 
-  count = length(local.service_ids)
-  name  = local.service_ids[count.index]
-
-  project  = var.project_id
-  location = var.project_default_region
-
-  metadata {
-    annotations = {
-      "run.googleapis.com/ingress" : "internal-and-cloud-load-balancing"
-    }
-  }
-
-  template {
-    spec {
-      service_account_name = google_service_account.cloudrun_service_account.email
-      containers {
-        image = var.default_run_image
-
-        ports {
-          container_port = 80
-        }
-      }
-    }
-  }
-
-  lifecycle {
-    ignore_changes = [
-      template[0].spec[0].containers[0].image,
-      template[0].spec[0].service_account_name,
-      metadata[0].annotations["run.googleapis.com/operation-id"],
-      metadata[0].annotations["client.knative.dev/user-image"],
-      metadata[0].annotations["run.googleapis.com/client-name"],
-      metadata[0].annotations["run.googleapis.com/client-version"]
-    ]
-  }
-
-  traffic {
-    percent         = 100
-    latest_revision = true
-  }
-}
-
-
-resource "google_compute_region_network_endpoint_group" "internal_servless_neg" {
-  depends_on = [
-    google_project_service.gcp_services
-  ]
-
-  name                  = "internal-servless-neg"
+  name                  = "frontend-serverless-neg"
   network_endpoint_type = "SERVERLESS"
   project               = var.project_id
   region                = var.project_default_region
 
   cloud_run {
-    url_mask = "/pri/<service>"
+    service = google_cloud_run_service.frontend_run.name
   }
 }
 
-
-resource "google_compute_region_backend_service" "internal-backend-srv" {
-  name                  = "internal-backend-srv"
-  project               = var.project_id
-  region                = var.project_default_region
-  protocol              = "HTTP"
-  load_balancing_scheme = "INTERNAL_MANAGED"
-
-  backend {
-    balancing_mode = "UTILIZATION"
-    group          = google_compute_region_network_endpoint_group.internal_servless_neg.id
-  }
-}
-
-
-# frontend Cloud Run application
-resource "google_cloud_run_service" "frontend" {
+#
+### Cloud Run service for the frontend application
+#
+resource "google_cloud_run_service" "frontend_run" {
   depends_on = [
     google_project_service.gcp_services
   ]
@@ -113,7 +58,7 @@ resource "google_cloud_run_service" "frontend" {
 
   template {
     spec {
-      service_account_name = google_service_account.cloudrun_service_account.email
+      service_account_name = google_service_account.frontend_cloudrun_sa.email
       containers {
         image = var.default_run_image
 
@@ -153,37 +98,77 @@ resource "google_cloud_run_service" "frontend" {
   }
 }
 
-resource "google_compute_region_network_endpoint_group" "serverless_neg" {
+
+
+
+############################################################
+############# private apps #################################
+############################################################
+
+#
+### Regional network endpoint group
+#
+resource "google_compute_region_network_endpoint_group" "backend_servless_neg" {
   depends_on = [
     google_project_service.gcp_services
   ]
 
-  provider              = google-beta
-  name                  = "serverless-neg"
+  name                  = "backend-servless-neg"
   network_endpoint_type = "SERVERLESS"
   project               = var.project_id
   region                = var.project_default_region
 
   cloud_run {
-    service = google_cloud_run_service.frontend.name
+    url_mask = "/pri/<service>"
   }
 }
 
-resource "google_compute_backend_service" "run-backend-srv" {
+#
+### Cloud Run services for the backend applications
+#
+resource "google_cloud_run_service" "backend_run" {
   depends_on = [
     google_project_service.gcp_services
   ]
 
-  project = var.project_id
-  name    = "run-backend-srv"
+  count = length(local.service_ids)
+  name  = local.service_ids[count.index]
 
-  port_name   = "http"
-  protocol    = "HTTP"
-  timeout_sec = 30
+  project  = var.project_id
+  location = var.project_default_region
 
-  backend {
-    group = google_compute_region_network_endpoint_group.serverless_neg.id
+  metadata {
+    annotations = {
+      "run.googleapis.com/ingress" : "internal-and-cloud-load-balancing"
+    }
+  }
+
+  template {
+    spec {
+      service_account_name = google_service_account.backend_cloudrun_sa.email
+      containers {
+        image = var.default_run_image
+
+        ports {
+          container_port = 80
+        }
+      }
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      template[0].spec[0].containers[0].image,
+      template[0].spec[0].service_account_name,
+      metadata[0].annotations["run.googleapis.com/operation-id"],
+      metadata[0].annotations["client.knative.dev/user-image"],
+      metadata[0].annotations["run.googleapis.com/client-name"],
+      metadata[0].annotations["run.googleapis.com/client-version"]
+    ]
+  }
+
+  traffic {
+    percent         = 100
+    latest_revision = true
   }
 }
-
-
