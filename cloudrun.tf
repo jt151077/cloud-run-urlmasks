@@ -53,6 +53,7 @@ resource "google_cloud_run_service" "frontend_run" {
   metadata {
     annotations = {
       "run.googleapis.com/ingress" : "internal-and-cloud-load-balancing"
+      "run.googleapis.com/launch-stage" = "BETA"
     }
   }
 
@@ -68,12 +69,18 @@ resource "google_cloud_run_service" "frontend_run" {
       }
     }
 
+    # configured with Direct VPC nteworking: https://cloud.google.com/run/docs/configuring/vpc-direct-vpc
     metadata {
       annotations = {
-        "autoscaling.knative.dev/maxScale"        = 4
-        "autoscaling.knative.dev/minScale"        = 2
-        "run.googleapis.com/vpc-access-connector" = google_vpc_access_connector.frontend_to_internal.id
-        "run.googleapis.com/vpc-access-egress"    = "all-traffic"
+        "autoscaling.knative.dev/maxScale"     = 4
+        "autoscaling.knative.dev/minScale"     = 2
+        "run.googleapis.com/vpc-access-egress" = "private-ranges-only"
+        "run.googleapis.com/network-interfaces" = jsonencode(
+          [{
+            network    = google_compute_network.custom_vpc.name
+            subnetwork = google_compute_subnetwork.backend_subnet.name
+          }]
+        )
       }
     }
   }
@@ -85,6 +92,7 @@ resource "google_cloud_run_service" "frontend_run" {
       template[0].metadata[0].annotations["run.googleapis.com/client-name"],
       template[0].metadata[0].annotations["run.googleapis.com/client-version"],
       template[0].metadata[0].labels["run.googleapis.com/startupProbeType"],
+      template[0].metadata[0].labels["client.knative.dev/nonce"],
       metadata[0].annotations["run.googleapis.com/operation-id"],
       metadata[0].annotations["client.knative.dev/user-image"],
       metadata[0].annotations["run.googleapis.com/client-name"],

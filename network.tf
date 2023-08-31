@@ -222,23 +222,6 @@ resource "google_compute_backend_service" "frontend_global_backend_srv" {
   }
 }
 
-#
-### VPC Access connector to allow egress (outbound) traffic from Cloud Run to Compute Engine VM instances, Memorystore instances, and any other resources with an internal IP address
-### Source: https://cloud.google.com/vpc/docs/configure-serverless-vpc-access
-#
-resource "google_vpc_access_connector" "frontend_to_internal" {
-  name           = "frontend-to-internal"
-  project        = var.project_id
-  region         = var.project_default_region
-  ip_cidr_range  = "10.8.0.0/28"
-  machine_type   = "e2-micro"
-  min_instances  = 2
-  max_instances  = 10
-  network        = google_compute_network.custom_vpc.id
-  max_throughput = 1000
-}
-
-
 
 ############################################################
 ############# IAP enablement ###############################

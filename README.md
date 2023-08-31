@@ -6,7 +6,7 @@ Source for enabling IAP with Cloud Run: [https://cloud.google.com/iap/docs/enabl
 
 ## Overall architecture
 
-![](imgs/3.png)
+![](imgs/4.png)
 
 
 ## Project structure
