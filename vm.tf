@@ -19,6 +19,10 @@
 ### Google Compute Engine with linux preinstalled
 #
 resource "google_compute_instance" "dev_vm" {
+  depends_on = [
+    google_compute_subnetwork.vm_subnet
+  ]
+
   name                      = "dev-vm"
   zone                      = "${var.project_default_region}-b"
   project                   = var.project_id
@@ -33,7 +37,7 @@ resource "google_compute_instance" "dev_vm" {
   }
 
   network_interface {
-    subnetwork = google_compute_subnetwork.frontend_subnet.self_link
+    subnetwork = google_compute_subnetwork.vm_subnet.self_link
   }
 
   service_account {
@@ -47,6 +51,10 @@ resource "google_compute_instance" "dev_vm" {
 ### Firewall rule to allow SSH on GCE
 #
 resource "google_compute_firewall" "ssh" {
+  depends_on = [
+    google_compute_network.custom_vpc
+  ]
+
   project = var.project_id
   name    = "allow-ssh"
 
