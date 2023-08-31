@@ -33,18 +33,18 @@ resource "google_compute_network" "custom_vpc" {
 
 
 ############################################################
-############# public services ##############################
+############# dev-vm subnet ################################
 ############################################################
 
 #
-### Subnet for setting up the frontend (public) services
+### Subnet for setting up the vm (used for private access: development)
 #
-resource "google_compute_subnetwork" "frontend_subnet" {
+resource "google_compute_subnetwork" "vm_subnet" {
   depends_on = [
     google_project_service.gcp_services
   ]
 
-  name          = "frontend-subnet"
+  name          = "vm-subnet"
   project       = var.project_id
   ip_cidr_range = "10.240.0.0/24"
   region        = var.project_default_region
@@ -56,6 +56,12 @@ resource "google_compute_subnetwork" "frontend_subnet" {
     metadata             = "INCLUDE_ALL_METADATA"
   }
 }
+
+
+
+############################################################
+############# public services ##############################
+############################################################
 
 #
 ### Public static IP address for the Global Load Balancer
