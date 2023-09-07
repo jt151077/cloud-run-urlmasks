@@ -13,6 +13,13 @@ steps:
   # Push the container image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', '${_REGION}-docker.pkg.dev/$PROJECT_ID/run-image/custom-nodejs:latest']
+   # Build and tag using commit sha
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '.', '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/run-image/gateway:latest', '-f', 'Dockerfile']
+    dir: 'app3'
+  # Push the container image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', '${_REGION}-docker.pkg.dev/$PROJECT_ID/run-image/gateway:latest']
   # Build and tag using commit sha
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '.', '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/run-image/flask-frontend:latest', '-f', 'Dockerfile']

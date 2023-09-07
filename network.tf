@@ -444,3 +444,24 @@ resource "google_compute_region_backend_service" "backend_regional_backend_srv" 
   }
 }
 
+
+#
+### Allow Cloud Run to interact with external API
+#
+resource "google_compute_router" "router" {
+  name    = "router"
+  project = var.project_id
+  region  = var.project_default_region
+  network = google_compute_network.custom_vpc.id
+}
+
+resource "google_compute_router_nat" "nat" {
+  name    = "nat"
+  project = var.project_id
+  region  = var.project_default_region
+  router  = google_compute_router.router.name
+
+  source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
+  nat_ip_allocate_option = "AUTO_ONLY"
+}
+

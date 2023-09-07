@@ -154,6 +154,13 @@ resource "google_cloud_run_service" "backend_run" {
         }
       }
     }
+
+    metadata {
+      annotations = {
+        "run.googleapis.com/vpc-access-connector" = google_vpc_access_connector.frontend_to_internal.id
+        "run.googleapis.com/vpc-access-egress"    = "all-traffic"
+      }
+    }
   }
 
   lifecycle {

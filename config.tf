@@ -22,7 +22,8 @@ locals {
   iap_brand_support_email = var.iap_brand_support_email
   service_ids = [
     "runservice1",
-    "runservice2"
+    "runservice2",
+    "runservice3"
   ]
 
   gcp_service_list = [
